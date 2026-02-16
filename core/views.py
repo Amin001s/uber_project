@@ -11,7 +11,7 @@ class GoldLayerView(viewsets.ModelViewSet):
     lookup_field = 'booking_id'
     pagination_class = None
 
-        #لیست سفر ها
+    #لیست سفر ها
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
         customer_id = request.query_params.get('customer_id')
@@ -49,8 +49,8 @@ class GoldLayerView(viewsets.ModelViewSet):
         }, status=status.HTTP_201_CREATED)
 
     #اپدیت سفر
-    def partial_update(self, request, *args, **kwargs):
-        response = super().partial_update(request, *args, **kwargs)
+    def update(self, request, *args, **kwargs):
+        response = super().update(request, *args, **kwargs)
         last_query = connection.queries[-1]['sql']
         return Response({
             "data": response.data,

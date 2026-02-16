@@ -120,7 +120,10 @@ with tab1:
         col_bar1, col_bar2 = st.columns(2)
         with col_bar1:
             st.subheader("Trips by Vehicle Type")
-            vehicle_counts = filtered_df['vehicle_type'].value_counts().reset_index()
+
+            completed_trips = filtered_df[filtered_df['booking_status'] == 'Completed']
+            vehicle_counts = completed_trips['vehicle_type'].value_counts().reset_index()
+            
             vehicle_counts.columns = ['vehicle_type', 'count']
             fig_vehicle = px.bar(vehicle_counts, x='vehicle_type', y='count', color='count')
             st.plotly_chart(fig_vehicle, use_container_width=True)
@@ -208,8 +211,16 @@ with tab3:
     if search_btn and search_query:
         
             try:
+                import os
+                
+                current_dir = os.getcwd() 
+                chroma_path = os.path.join(current_dir, "dashboard", "chroma_db")
+                
 
-                client = chromadb.PersistentClient(path="./chroma_db")
+                if not os.path.exists(chroma_path):
+                     chroma_path = os.path.join(current_dir, "chroma_db")
+
+                client = chromadb.PersistentClient(path=chroma_path)
                 collection = client.get_collection(name="cancellation_reasons")
 
 
@@ -219,17 +230,17 @@ with tab3:
                 )
 
 
-                top_ids = results['ids'][0]        
-                top_documents = results['documents'][0] 
-                
-                if not top_ids:
-                    st.warning("No similar records found.")
+                if not results['ids'] or not results['ids'][0]:
+                     st.warning("No similar records found.")
                 else:
-
+                    top_ids = results['ids'][0]        
+                    top_documents = results['documents'][0] 
+                    
                     ids_tuple = tuple(top_ids)
                     
 
                     if len(ids_tuple) == 1:
+                
                         sql_query = f"SELECT * FROM gold.dataset WHERE booking_id = '{ids_tuple[0]}'"
                     else:
                         sql_query = f"SELECT * FROM gold.dataset WHERE booking_id IN {ids_tuple}"
@@ -238,19 +249,13 @@ with tab3:
                     pg_engine = create_engine(db_str)
                     full_details_df = pd.read_sql(sql_query, pg_engine)
 
-                    st.success(f"Found {len(full_details_df)} similar trips:")
                     
-                    for index, row in full_details_df.iterrows():
-
-                        
-                        with st.expander(f"🚖 Trip ID: {row['booking_id']} | Reason: {row['unified_cancellation_reason']}"):
-                            col1, col2, col3 = st.columns(3)
-                            col1.metric("Vehicle", row['vehicle_type'])
-                            col2.metric("Date", str(row['date']))
-                            col3.metric("Customer Rating", row['customer_rating'])
-                            
-                            st.caption(f"Full Details: Value: ${row['booking_value']} | Distance: {row['ride_distance']} km")
-
+                    
+                    st.dataframe(
+                        full_details_df, 
+                        use_container_width=True,  
+                        hide_index=True            
+                    )
             except Exception as e:
                 st.error(f"Error: {e}")
-                st.info("Tip: Did you run 'chroma.py' first?")
+                
