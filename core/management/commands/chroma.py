@@ -16,7 +16,7 @@ class Command(BaseCommand):
         data_list = list(queryset)
         total_rows = len(data_list)
         
-        self.stdout.write(self.style.SUCCESS(f"Loaded {total_rows} records from Django Models."))
+        self.stdout.write(self.style.SUCCESS(f"Loaded {total_rows} records"))
 
 
         chroma_path = os.path.join(settings.BASE_DIR, 'dashboard', 'chroma_db')
@@ -31,7 +31,7 @@ class Command(BaseCommand):
             client.delete_collection(name=collection_name)
             self.stdout.write(f"   Deleted existing collection '{collection_name}'")
         except Exception: 
-            self.stdout.write(f"Collection '{collection_name}' did not exist. Creating new one.")
+            self.stdout.write(f"Creating new Collection")
 
 
         collection = client.create_collection(name=collection_name)
