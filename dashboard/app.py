@@ -10,7 +10,7 @@ st.title("Uber")
 @st.cache_data
 def load_data():
     
-    db_connection_str = 'postgresql://uber_user:pass@localhost:5432/uber_db'
+    db_connection_str = 'postgresql://uber_user:pass@localhost:5432/test'
     db_connection = create_engine(db_connection_str)
     
     
@@ -164,7 +164,7 @@ with tab2:
     st.markdown("Ask your question.")
     
 
-    user_query = st.text_input("", placeholder="Example: Show me top 5 trips with highest value")
+    user_query = st.text_input("", placeholder="Example: Show me top 5 trips with highest ride distance")
     generate_btn = st.button("  Go  ", type="primary", )
 
     if generate_btn and user_query:
@@ -182,7 +182,7 @@ with tab2:
         if "SELECT" in cleaned_sql.upper() and "DROP" not in cleaned_sql.upper():
             try:
                 
-                db_str = 'postgresql://uber_user:pass@localhost:5432/uber_db'
+                db_str = 'postgresql://uber_user:pass@localhost:5432/test'
                 engine = create_engine(db_str)
                     
 
@@ -245,7 +245,7 @@ with tab3:
                     else:
                         sql_query = f"SELECT * FROM gold.dataset WHERE booking_id IN {ids_tuple}"
 
-                    db_str = 'postgresql://uber_user:pass@localhost:5432/uber_db'
+                    db_str = 'postgresql://uber_user:pass@localhost:5432/test'
                     pg_engine = create_engine(db_str)
                     full_details_df = pd.read_sql(sql_query, pg_engine)
 

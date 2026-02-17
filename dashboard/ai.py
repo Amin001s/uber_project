@@ -3,28 +3,23 @@ from openai import OpenAI
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
 
-# بارگذاری تنظیمات از فایل .env
+
 load_dotenv()
 
-# تنظیم کلاینت هوش مصنوعی
+
 client = OpenAI(
     api_key=os.getenv("AI_API_KEY"),
     base_url=os.getenv("AI_BASE_URL")
 )
 
-# === تابع: استخراج داینامیک اسکیما از جدول GOLD ===
 def get_gold_schema():
-    """
-    این تابع مشخصات ستون‌ها را فقط از جدول gold.dataset می‌خواند.
-    """
+
     try:
-        # تنظیمات اتصال به دیتابیس
-        # نکته: اگر یوزر/پسورد شما فرق دارد، اینجا اصلاح کنید
+
         db_connection_str = os.getenv("DB_CONNECTION_STRING")
         engine = create_engine(db_connection_str)
 
-        # کوئری برای دریافت نام ستون‌ها و نوع آن‌ها
-        # نکته مهم: شرط WHERE table_schema = 'gold' تضمین می‌کند که فقط از گلد می‌خوانیم
+
         schema_query = text("""
             SELECT column_name, data_type 
             FROM information_schema.columns 
@@ -36,10 +31,9 @@ def get_gold_schema():
             columns = result.fetchall()
 
         if not columns:
-            return "Error: Could not find table 'gold.dataset'. Please check migrations."
+            return "Error"
 
-        # ساخت متن اسکیما برای ارسال به هوش مصنوعی
-        # ما صراحتاً نام جدول را gold.dataset ذکر می‌کنیم
+
         schema_text = "Target Table: gold.dataset\nColumns:\n"
         for col in columns:
             schema_text += f"- {col[0]} ({col[1]})\n"
@@ -49,17 +43,16 @@ def get_gold_schema():
     except Exception as e:
         return f"Error fetching schema from database: {str(e)}"
 
-# === تابع اصلی: تولید پاسخ ===
 def get_sql_response(user_question):
     
-    # 1. دریافت اسکیما (Schema Injection)
+
     gold_schema = get_gold_schema()
     
-    # اگر خطا داشت، همان را برگردان
+
     if "Error" in gold_schema:
         return gold_schema
 
-    # 2. مهندسی پرامپت (System Prompt)
+
     system_prompt = f"""
     You are an expert PostgreSQL Data Analyst.
     Your task is to convert the user's question into a valid SQL query.
